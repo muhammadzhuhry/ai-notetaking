@@ -1,143 +1,200 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Sidebar } from "./components/sidebar"
-import { NoteEditor } from "./components/note-editor"
-import { SearchDialog } from "./components/search-dialog"
-import { AIChatDialog } from "./components/ai-chat-dialog"
-import { Button } from "./components/ui/button"
-import { Search, MessageSquare, Plus, FolderPlus, XCircle } from "lucide-react" // Import XCircle for clear button
-import type { Note } from "./types/note"
-import type { Notebook } from "./types/notebook"
-import { mockNotebooks, mockNotes } from "./lib/mock-data"
-import "./App.css"
+import { useEffect, useState } from "react";
+import { Sidebar } from "./components/sidebar";
+import { NoteEditor } from "./components/note-editor";
+import { SearchDialog } from "./components/search-dialog";
+import { AIChatDialog } from "./components/ai-chat-dialog";
+import { Button } from "./components/ui/button";
+import { Search, MessageSquare, Plus, FolderPlus, XCircle } from "lucide-react"; // Import XCircle for clear button
+import type { Note } from "./types/note";
+import type { Notebook } from "./types/notebook";
+import { mockNotes } from "./lib/mock-data";
+import "./App.css";
+import axios from "axios";
+import type { BaseResponse } from "./dto/base-response";
+import type {
+  CreateNotebookRequest,
+  CreateNotebookResponse,
+  GetAllNotebooksResponse,
+} from "./dto/notebook";
+import { AppConfig } from "./config/config";
 
 export default function App() {
-  const [notebooks, setNotebooks] = useState<Notebook[]>(mockNotebooks)
-  const [notes, setNotes] = useState<Note[]>(mockNotes)
-  const [selectedNotebook, setSelectedNotebook] = useState<string | null>(null)
-  const [selectedNote, setSelectedNote] = useState<string | null>(null)
-  const [searchOpen, setSearchOpen] = useState(false)
-  const [chatOpen, setChatOpen] = useState(false)
-  const [expandedNotebooks, setExpandedNotebooks] = useState<Set<string>>(new Set())
-  const [isCreatingNote, setIsCreatingNote] = useState(false)
-  const [isCreatingNotebook, setIsCreatingNotebook] = useState(false)
-  const [isProcessingMove, setIsProcessingMove] = useState(false) // State for move operations
-  const [isDeletingNotebook, setIsDeletingNotebook] = useState<string | null>(null) // State for deleting notebook
-  const [isDeletingNote, setIsDeletingNote] = useState<string | null>(null) // State for deleting note
+  const [notebooks, setNotebooks] = useState<Notebook[]>([]);
+  const [notes, setNotes] = useState<Note[]>(mockNotes);
+  const [selectedNotebook, setSelectedNotebook] = useState<string | null>(null);
+  const [selectedNote, setSelectedNote] = useState<string | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [expandedNotebooks, setExpandedNotebooks] = useState<Set<string>>(
+    new Set(),
+  );
+  const [isCreatingNote, setIsCreatingNote] = useState(false);
+  const [isCreatingNotebook, setIsCreatingNotebook] = useState(false);
+  const [isProcessingMove, setIsProcessingMove] = useState(false); // State for move operations
+  const [isDeletingNotebook, setIsDeletingNotebook] = useState<string | null>(
+    null,
+  ); // State for deleting notebook
+  const [isDeletingNote, setIsDeletingNote] = useState<string | null>(null); // State for deleting note
 
-  const currentNote = notes.find((note) => note.id === selectedNote)
+  const currentNote = notes.find((note) => note.id === selectedNote);
+
+  const fetchAllNotebooks = async () => {
+    const res = await axios.get<BaseResponse<GetAllNotebooksResponse[]>>(
+      `${AppConfig.baseURL}/api/notebook/v1`,
+    );
+
+    setNotebooks(
+      res.data.data.map((notebook) => ({
+        id: notebook.id,
+        name: notebook.name,
+        parentId: notebook.parent_id ?? null,
+        createdAt: notebook.created_at,
+        updatedAt: notebook.updated_at ?? notebook.created_at,
+      })),
+    );
+  };
+
+  useEffect(() => {
+    fetchAllNotebooks();
+  }, []);
 
   const handleNoteUpdate = (noteId: string, updates: Partial<Note>) => {
-    setNotes((prev) => prev.map((note) => (note.id === noteId ? { ...note, ...updates, updatedAt: new Date() } : note)))
-  }
+    setNotes((prev) =>
+      prev.map((note) =>
+        note.id === noteId
+          ? { ...note, ...updates, updatedAt: new Date() }
+          : note,
+      ),
+    );
+  };
 
-  const handleNotebookUpdate = (notebookId: string, updates: Partial<Notebook>) => {
+  const handleNotebookUpdate = (
+    notebookId: string,
+    updates: Partial<Notebook>,
+  ) => {
     setNotebooks((prev) =>
       prev.map((notebook) =>
-        notebook.id === notebookId ? { ...notebook, ...updates, updatedAt: new Date() } : notebook,
+        notebook.id === notebookId
+          ? { ...notebook, ...updates, updatedAt: new Date() }
+          : notebook,
       ),
-    )
-  }
+    );
+  };
 
   const handleDeleteNotebook = async (notebookId: string) => {
-    if (isDeletingNotebook === notebookId) return // Prevent double deletion
+    if (isDeletingNotebook === notebookId) return; // Prevent double deletion
 
-    setIsDeletingNotebook(notebookId) // Set loading for this specific notebook
+    setIsDeletingNotebook(notebookId); // Set loading for this specific notebook
 
     // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 800))
+    await new Promise((resolve) => setTimeout(resolve, 800));
 
     // Delete all notes in this notebook and its children
-    const notebookIdsToDelete = getAllChildNotebooks(notebookId)
-    setNotes((prev) => prev.filter((note) => !notebookIdsToDelete.includes(note.notebookId)))
+    const notebookIdsToDelete = getAllChildNotebooks(notebookId);
+    setNotes((prev) =>
+      prev.filter((note) => !notebookIdsToDelete.includes(note.notebookId)),
+    );
 
     // Delete the notebook and its children
-    setNotebooks((prev) => prev.filter((notebook) => !notebookIdsToDelete.includes(notebook.id)))
+    setNotebooks((prev) =>
+      prev.filter((notebook) => !notebookIdsToDelete.includes(notebook.id)),
+    );
 
     // Clear selection if deleted
-    if (selectedNotebook === notebookId || notebookIdsToDelete.includes(selectedNotebook || "")) {
-      setSelectedNotebook(null)
-      setSelectedNote(null)
+    if (
+      selectedNotebook === notebookId ||
+      notebookIdsToDelete.includes(selectedNotebook || "")
+    ) {
+      setSelectedNotebook(null);
+      setSelectedNote(null);
     }
 
-    setIsDeletingNotebook(null) // Clear loading
-  }
+    setIsDeletingNotebook(null); // Clear loading
+  };
 
   const handleDeleteNote = async (noteId: string) => {
-    if (isDeletingNote === noteId) return // Prevent double deletion
+    if (isDeletingNote === noteId) return; // Prevent double deletion
 
-    setIsDeletingNote(noteId) // Set loading for this specific note
+    setIsDeletingNote(noteId); // Set loading for this specific note
 
     // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 500))
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-    setNotes((prev) => prev.filter((note) => note.id !== noteId))
+    setNotes((prev) => prev.filter((note) => note.id !== noteId));
 
     // Clear selection if deleted
     if (selectedNote === noteId) {
-      setSelectedNote(null)
+      setSelectedNote(null);
     }
 
-    setIsDeletingNote(null) // Clear loading
-  }
+    setIsDeletingNote(null); // Clear loading
+  };
 
   const getAllChildNotebooks = (parentId: string): string[] => {
-    const children = notebooks.filter((nb) => nb.parentId === parentId)
-    const allIds = [parentId]
+    const children = notebooks.filter((nb) => nb.parentId === parentId);
+    const allIds = [parentId];
 
     children.forEach((child) => {
-      allIds.push(...getAllChildNotebooks(child.id))
-    })
+      allIds.push(...getAllChildNotebooks(child.id));
+    });
 
-    return allIds
-  }
+    return allIds;
+  };
 
   const handleMoveNote = async (noteId: string, targetNotebookId: string) => {
-    setIsProcessingMove(true) // Start global loading for move
-    await new Promise((resolve) => setTimeout(resolve, 800)) // Dummy delay
+    setIsProcessingMove(true); // Start global loading for move
+    await new Promise((resolve) => setTimeout(resolve, 800)); // Dummy delay
 
     setNotes((prev) =>
       prev.map((note) =>
-        note.id === noteId ? { ...note, notebookId: targetNotebookId, updatedAt: new Date() } : note,
+        note.id === noteId
+          ? { ...note, notebookId: targetNotebookId, updatedAt: new Date() }
+          : note,
       ),
-    )
+    );
 
     // Auto-expand target notebook
-    setExpandedNotebooks((prev) => new Set([...prev, targetNotebookId]))
-    setIsProcessingMove(false) // End global loading
-  }
+    setExpandedNotebooks((prev) => new Set([...prev, targetNotebookId]));
+    setIsProcessingMove(false); // End global loading
+  };
 
-  const handleMoveNotebook = async (notebookId: string, targetParentId: string | null) => {
+  const handleMoveNotebook = async (
+    notebookId: string,
+    targetParentId: string | null,
+  ) => {
     // Prevent moving a notebook into itself or its children
-    const childIds = getAllChildNotebooks(notebookId)
+    const childIds = getAllChildNotebooks(notebookId);
     if (targetParentId && childIds.includes(targetParentId)) {
-      return
+      return;
     }
 
-    setIsProcessingMove(true) // Start global loading for move
-    await new Promise((resolve) => setTimeout(resolve, 1000)) // Dummy delay
+    setIsProcessingMove(true); // Start global loading for move
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // Dummy delay
 
     setNotebooks((prev) =>
       prev.map((notebook) =>
-        notebook.id === notebookId ? { ...notebook, parentId: targetParentId, updatedAt: new Date() } : notebook,
+        notebook.id === notebookId
+          ? { ...notebook, parentId: targetParentId, updatedAt: new Date() }
+          : notebook,
       ),
-    )
+    );
 
     // Auto-expand target parent if it exists
     if (targetParentId) {
-      setExpandedNotebooks((prev) => new Set([...prev, targetParentId]))
+      setExpandedNotebooks((prev) => new Set([...prev, targetParentId]));
     }
-    setIsProcessingMove(false) // End global loading
-  }
+    setIsProcessingMove(false); // End global loading
+  };
 
   const handleCreateNote = async () => {
-    if (!selectedNotebook || isCreatingNote) return
+    if (!selectedNotebook || isCreatingNote) return;
 
-    setIsCreatingNote(true)
+    setIsCreatingNote(true);
 
     // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 800))
+    await new Promise((resolve) => setTimeout(resolve, 800));
 
     const newNote: Note = {
       id: `note-${Date.now()}`,
@@ -146,47 +203,46 @@ export default function App() {
       notebookId: selectedNotebook,
       createdAt: new Date(),
       updatedAt: new Date(),
-    }
+    };
 
-    setNotes((prev) => [...prev, newNote])
-    setSelectedNote(newNote.id)
+    setNotes((prev) => [...prev, newNote]);
+    setSelectedNote(newNote.id);
 
     // Auto-expand the notebook when adding a note
-    setExpandedNotebooks((prev) => new Set([...prev, selectedNotebook]))
+    setExpandedNotebooks((prev) => new Set([...prev, selectedNotebook]));
 
-    setIsCreatingNote(false)
-  }
+    setIsCreatingNote(false);
+  };
 
   const handleCreateNotebook = async () => {
-    if (isCreatingNotebook) return
+    if (isCreatingNotebook) return;
 
-    setIsCreatingNotebook(true)
+    setIsCreatingNotebook(true);
 
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    const newNotebook: Notebook = {
-      id: `notebook-${Date.now()}`,
+    const request: CreateNotebookRequest = {
       name: "New Notebook",
-      parentId: selectedNotebook || null, // This correctly uses null if selectedNotebook is null
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
+      parent_id: selectedNotebook ?? null,
+    };
 
-    setNotebooks((prev) => [...prev, newNotebook])
+    axios.post<BaseResponse<CreateNotebookResponse>>(
+      `${AppConfig.baseURL}/api/notebook/v1`,
+      request,
+    );
+
+    await fetchAllNotebooks(); // Refresh notebooks after creation
 
     // Auto-expand parent notebook when adding a child notebook
     if (selectedNotebook) {
-      setExpandedNotebooks((prev) => new Set([...prev, selectedNotebook]))
+      setExpandedNotebooks((prev) => new Set([...prev, selectedNotebook]));
     }
 
-    setIsCreatingNotebook(false)
-  }
+    setIsCreatingNotebook(false);
+  };
 
   const handleClearSelection = () => {
-    setSelectedNotebook(null)
-    setSelectedNote(null)
-  }
+    setSelectedNotebook(null);
+    setSelectedNote(null);
+  };
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -297,8 +353,12 @@ export default function App() {
           <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
             <div className="text-center">
               <div className="text-6xl mb-4">📝</div>
-              <h2 className="text-xl font-medium mb-2">Select a note to start editing</h2>
-              <p className="text-sm">Choose a note from the sidebar or create a new one</p>
+              <h2 className="text-xl font-medium mb-2">
+                Select a note to start editing
+              </h2>
+              <p className="text-sm">
+                Choose a note from the sidebar or create a new one
+              </p>
             </div>
           </div>
         )}
@@ -310,16 +370,16 @@ export default function App() {
         onOpenChange={setSearchOpen}
         notes={notes}
         onNoteSelect={(noteId) => {
-          setSelectedNote(noteId)
-          const note = notes.find((n) => n.id === noteId)
+          setSelectedNote(noteId);
+          const note = notes.find((n) => n.id === noteId);
           if (note) {
-            setSelectedNotebook(note.notebookId)
+            setSelectedNotebook(note.notebookId);
           }
-          setSearchOpen(false)
+          setSearchOpen(false);
         }}
       />
 
       <AIChatDialog open={chatOpen} onOpenChange={setChatOpen} notes={notes} />
     </div>
-  )
+  );
 }
