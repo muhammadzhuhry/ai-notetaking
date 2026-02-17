@@ -17,6 +17,8 @@ import type {
   CreateNotebookRequest,
   CreateNotebookResponse,
   GetAllNotebooksResponse,
+  MoveNotebookRequest,
+  MoveNotebookResponse,
 } from "./dto/notebook";
 import { AppConfig } from "./config/config";
 
@@ -151,13 +153,15 @@ export default function App() {
     setIsProcessingMove(true); // Start global loading for move
     await new Promise((resolve) => setTimeout(resolve, 1000)); // Dummy delay
 
-    setNotebooks((prev) =>
-      prev.map((notebook) =>
-        notebook.id === notebookId
-          ? { ...notebook, parentId: targetParentId, updatedAt: new Date() }
-          : notebook,
-      ),
+    const request: MoveNotebookRequest = {
+      parent_id: targetParentId,
+    };
+    await axios.put<BaseResponse<MoveNotebookResponse>>(
+      `${AppConfig.baseURL}/api/notebook/v1/${notebookId}/move`,
+      request,
     );
+
+    await fetchAllNotebooks(); // Refresh notebooks after move
 
     // Auto-expand target parent if it exists
     if (targetParentId) {
