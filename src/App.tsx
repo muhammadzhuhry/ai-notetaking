@@ -122,10 +122,9 @@ export default function App() {
 
     setIsDeletingNote(noteId); // Set loading for this specific note
 
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await axios.delete(`${AppConfig.baseURL}/api/note/v1/${noteId}`);
 
-    setNotes((prev) => prev.filter((note) => note.id !== noteId));
+    await fetchAllNotebooks(); // Refresh notebooks and notes after deletion
 
     // Clear selection if deleted
     if (selectedNote === noteId) {
