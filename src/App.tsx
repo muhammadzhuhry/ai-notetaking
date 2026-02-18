@@ -9,7 +9,6 @@ import { Button } from "./components/ui/button";
 import { Search, MessageSquare, Plus, FolderPlus, XCircle } from "lucide-react"; // Import XCircle for clear button
 import type { Note } from "./types/note";
 import type { Notebook } from "./types/notebook";
-import { mockNotes } from "./lib/mock-data";
 import "./App.css";
 import axios from "axios";
 import type { BaseResponse } from "./dto/base-response";
@@ -24,7 +23,7 @@ import { AppConfig } from "./config/config";
 
 export default function App() {
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
-  const [notes, setNotes] = useState<Note[]>(mockNotes);
+  const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNotebook, setSelectedNotebook] = useState<string | null>(null);
   const [selectedNote, setSelectedNote] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -52,10 +51,25 @@ export default function App() {
         id: notebook.id,
         name: notebook.name,
         parentId: notebook.parent_id ?? null,
-        createdAt: notebook.created_at,
-        updatedAt: notebook.updated_at ?? notebook.created_at,
+        createdAt: new Date(notebook.created_at),
+        updatedAt: new Date(notebook.updated_at ?? notebook.created_at),
       })),
     );
+
+    const notes = res.data.data.reduce<Note[]>((currentNotes, notebook) => {
+      return [
+        ...currentNotes,
+        ...notebook.notes.map<Note>((n) => ({
+          id: n.id,
+          title: n.title,
+          content: n.content,
+          notebookId: notebook.id,
+          createdAt: new Date(n.created_at),
+          updatedAt: new Date(n.updated_at ?? n.created_at),
+        })),
+      ];
+    }, []);
+    setNotes(notes);
   };
 
   useEffect(() => {
