@@ -20,6 +20,7 @@ import type {
   MoveNotebookResponse,
 } from "./dto/notebook";
 import { AppConfig } from "./config/config";
+import type { CreateNoteRequest, CreateNoteResponse } from "./dto/note";
 
 export default function App() {
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
@@ -189,20 +190,20 @@ export default function App() {
 
     setIsCreatingNote(true);
 
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    const newNote: Note = {
-      id: `note-${Date.now()}`,
+    const request: CreateNoteRequest = {
       title: "Untitled Note",
       content: "# Untitled Note\n\nStart writing...",
-      notebookId: selectedNotebook,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      notebook_id: selectedNotebook,
     };
 
-    setNotes((prev) => [...prev, newNote]);
-    setSelectedNote(newNote.id);
+    const res = await axios.post<BaseResponse<CreateNoteResponse>>(
+      `${AppConfig.baseURL}/api/note/v1`,
+      request,
+    );
+
+    await fetchAllNotebooks(); // Refresh notebooks and notes after creation
+
+    setSelectedNote(res.data.data.id);
 
     // Auto-expand the notebook when adding a note
     setExpandedNotebooks((prev) => new Set([...prev, selectedNotebook]));
