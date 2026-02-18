@@ -7,3 +7,12 @@ export interface CreateNoteRequest {
 export interface CreateNoteResponse {
   id: string;
 }
+
+export interface UpdateNoteRequest {
+  title: string;
+  content: string;
+}
+
+export interface UpdateNoteResponse {
+  id: string;
+}
