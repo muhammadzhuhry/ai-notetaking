@@ -23,6 +23,8 @@ import { AppConfig } from "./config/config";
 import type {
   CreateNoteRequest,
   CreateNoteResponse,
+  MoveNoteRequest,
+  MoveNoteResponse,
   UpdateNoteRequest,
   UpdateNoteResponse,
 } from "./dto/note";
@@ -156,6 +158,16 @@ export default function App() {
           : note,
       ),
     );
+
+    const req: MoveNoteRequest = {
+      notebook_id: targetNotebookId,
+    };
+    await axios.put<BaseResponse<MoveNoteResponse>>(
+      `${AppConfig.baseURL}/api/note/v1/${noteId}/move`,
+      req,
+    );
+
+    await fetchAllNotebooks(); // Refresh notebooks and notes after move
 
     // Auto-expand target notebook
     setExpandedNotebooks((prev) => new Set([...prev, targetNotebookId]));
