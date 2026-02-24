@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { ScrollArea } from "./ui/scroll-area";
-import { Send, Bot, User, Plus, Trash2 } from "lucide-react";
+import { Send, Bot, Plus, Trash2 } from "lucide-react";
 import type { Note } from "../types/note";
 import type { ChatSession, Message } from "@/types/ai-chat";
 import axios from "axios";
@@ -18,7 +18,10 @@ import type {
   DeleteSessionResponse,
   GetAllSessionsResponse,
   GetChatHistoryResponse,
+  SendChatRequest,
+  SendChatResponse,
 } from "../dto/chatbot";
+import ReactMarkdown from "react-markdown";
 
 interface AIChatDialogProps {
   open: boolean;
@@ -111,85 +114,69 @@ export function AIChatDialog({ open, onOpenChange, notes }: AIChatDialogProps) {
   const handleSend = async () => {
     if (!input.trim() || isLoading || !activeSession) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: input,
-      timestamp: new Date(),
-    };
+    setInput("");
+    setIsLoading(true);
 
     setSessions((prev) =>
       prev.map((s) => {
         if (s.id === activeSessionId) {
-          const updatedMessages = [...s.messages, userMessage];
-          let updatedName = s.name;
-
-          const hasOnlyInitialAssistantMessage =
-            s.messages.length === 1 && s.messages[0].role === "assistant";
-
-          if (hasOnlyInitialAssistantMessage) {
-            updatedName =
-              userMessage.content.substring(0, 30) +
-              (userMessage.content.length > 30 ? "..." : "");
-          }
-
           return {
             ...s,
-            name: updatedName,
-            messages: updatedMessages,
-            updatedAt: new Date(),
+            messages: [
+              ...s.messages,
+              {
+                id: "awur",
+                role: "user",
+                content: input,
+                timestamp: new Date(),
+              },
+            ],
           };
         }
-        return s;
+        return { ...s };
       }),
     );
 
-    setInput("");
-    setIsLoading(true);
+    const request: SendChatRequest = {
+      chat_session_id: activeSessionId,
+      chat: input,
+    };
 
-    setTimeout(() => {
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: generateAIResponse(input, notes),
-        timestamp: new Date(),
-      };
-
-      setSessions((prev) =>
-        prev.map((s) =>
-          s.id === activeSessionId
-            ? {
-                ...s,
-                messages: [...s.messages, aiResponse],
-                updatedAt: new Date(),
-              }
-            : s,
-        ),
-      );
-
-      setIsLoading(false);
-    }, 1000);
-  };
-
-  const generateAIResponse = (query: string, notes: Note[]): string => {
-    const relevantNotes = notes.filter(
-      (note) =>
-        note.content.toLowerCase().includes(query.toLowerCase()) ||
-        note.title.toLowerCase().includes(query.toLowerCase()),
+    const res = await axios.post<BaseResponse<SendChatResponse>>(
+      `${AppConfig.baseURL}/api/chatbot/v1/send-chat`,
+      request,
     );
 
-    if (relevantNotes.length > 0) {
-      return `Based on your notes, I found ${relevantNotes.length} relevant note(s). Here's what I can tell you:\n\n${relevantNotes
-        .slice(0, 2)
-        .map(
-          (note) => `**${note.title}**: ${note.content.substring(0, 200)}...`,
-        )
-        .join(
-          "\n\n",
-        )}\n\nWould you like me to elaborate on any specific aspect?`;
-    }
+    setSessions((prev) =>
+      prev.map((s) => {
+        if (s.id === activeSessionId) {
+          return {
+            ...s,
+            name: res.data.data.title,
+            messages: [
+              ...s.messages.slice(0, -1),
+              {
+                id: res.data.data.sent.id,
+                role:
+                  res.data.data.sent.role === "model" ? "assistant" : "user",
+                content: res.data.data.sent.chat,
+                timestamp: new Date(res.data.data.sent.created_at),
+              },
+              {
+                id: res.data.data.reply.id,
+                role:
+                  res.data.data.reply.role === "model" ? "assistant" : "user",
+                content: res.data.data.reply.chat,
+                timestamp: new Date(res.data.data.reply.created_at),
+              },
+            ],
+          };
+        }
+        return { ...s };
+      }),
+    );
 
-    return `I couldn't find specific information about "${query}" in your notes. However, I can help you with general questions or suggest creating a new note about this topic. What would you like to do?`;
+    setIsLoading(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -214,52 +201,55 @@ export function AIChatDialog({ open, onOpenChange, notes }: AIChatDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl h-[700px] flex flex-col bg-gradient-to-br from-white to-gray-50">
-        <DialogHeader className="bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 pb-4">
+      <DialogContent className="max-w-4xl h-[85vh] overflow-hidden p-0 gap-0 bg-white border-0 shadow-2xl rounded-2xl sm:rounded-2xl flex flex-col">
+        <DialogHeader className="px-6 py-5 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center justify-between pr-8">
-            <DialogTitle className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <DialogTitle className="text-xl font-semibold text-gray-900">
               Ask AI
             </DialogTitle>
             <Button
               variant="outline"
               size="sm"
               onClick={createNewSession}
-              className="bg-transparent hover:bg-blue-50"
+              className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm"
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4 mr-2 text-gray-500" />
               New Chat
             </Button>
           </div>
         </DialogHeader>
 
-        <div className="flex flex-1 gap-4 min-h-0">
+        <div className="flex flex-1 min-h-0 bg-white">
           {/* Session Sidebar */}
-          <div className="w-48 border-r border-gray-200 pr-4 bg-gradient-to-b from-gray-50 to-white flex flex-col">
-            <h4 className="text-sm font-semibold text-gray-800 mb-3 px-2 py-1 bg-gray-100 rounded-md flex-shrink-0">
+          <div className="w-64 border-r border-gray-100 bg-[#f8f9fc] flex flex-col">
+            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-4 py-3 pb-0 flex-shrink-0">
               Chat Sessions
             </h4>
             <ScrollArea className="flex-1">
-              <div className="space-y-1 pr-2">
+              <div className="space-y-1 p-3">
                 {sessions.map((session) => (
-                  <div key={session.id} className="flex items-center gap-1">
+                  <div
+                    key={session.id}
+                    className="flex items-center gap-1 group"
+                  >
                     <Button
                       variant={
                         activeSessionId === session.id ? "secondary" : "ghost"
                       }
                       size="sm"
-                      className={`flex-1 justify-start h-auto py-2 px-2 text-left flex-col items-start transition-all duration-200 ${
+                      className={`flex-1 justify-start h-auto py-2.5 px-3 text-left flex-col items-start transition-all duration-200 rounded-xl ${
                         activeSessionId === session.id
-                          ? "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 shadow-sm border-l-2 border-blue-500"
-                          : "hover:bg-gray-50 hover:shadow-sm"
+                          ? "bg-white text-indigo-700 shadow-sm border border-gray-200 font-medium"
+                          : "hover:bg-white text-gray-600 hover:text-gray-900 border border-transparent"
                       }`}
                       onClick={() => sessionClickHandler(session.id)}
                     >
-                      <span className="truncate w-full text-xs font-medium">
-                        {session.name.length > 18
-                          ? session.name.substring(0, 18) + "..."
+                      <span className="truncate w-full text-sm">
+                        {session.name.length > 20
+                          ? session.name.substring(0, 20) + "..."
                           : session.name}
                       </span>
-                      <span className="text-[10px] text-gray-500 w-full mt-0.5">
+                      <span className="text-[10px] text-gray-400 w-full mt-1">
                         {session.createdAt.toLocaleDateString()}
                       </span>
                     </Button>
@@ -267,10 +257,10 @@ export function AIChatDialog({ open, onOpenChange, notes }: AIChatDialogProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 opacity-50 hover:opacity-100 hover:bg-red-50 flex-shrink-0"
+                        className={`h-8 w-8 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50 flex-shrink-0 rounded-lg ${activeSessionId === session.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
                         onClick={() => deleteSession(session.id)}
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
                   </div>
@@ -279,42 +269,55 @@ export function AIChatDialog({ open, onOpenChange, notes }: AIChatDialogProps) {
             </ScrollArea>
           </div>
 
-          <div className="flex-1 flex flex-col min-w-0 bg-gradient-to-b from-white to-gray-50">
-            <ScrollArea className="flex-1 pr-4">
-              <div className="space-y-4 p-4">
+          <div className="flex-1 flex flex-col min-w-0 bg-white">
+            <ScrollArea className="flex-1 pr-6 pl-4">
+              <div className="space-y-6 p-6">
                 {messages.map((message) => (
                   <div
                     key={message.id}
                     className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`flex gap-3 max-w-[80%] ${message.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+                      className={`flex gap-4 max-w-[85%] ${message.role === "user" ? "flex-row-reverse" : "flex-row"}`}
                     >
-                      <div className="flex-shrink-0">
+                      <div className="flex-shrink-0 mt-1">
                         {message.role === "user" ? (
-                          <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
-                            <User className="h-4 w-4 text-white" />
+                          <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold text-xs shadow-sm">
+                            JD
                           </div>
                         ) : (
-                          <div className="w-8 h-8 bg-gradient-to-r from-gray-500 to-gray-600 rounded-full flex items-center justify-center shadow-sm">
+                          <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center shadow-sm">
                             <Bot className="h-4 w-4 text-white" />
                           </div>
                         )}
                       </div>
                       <div
-                        className={`rounded-lg p-3 shadow-sm ${
+                        className={`rounded-2xl px-5 py-3.5 shadow-sm text-[15px] leading-relaxed ${
                           message.role === "user"
-                            ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
-                            : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-900 border border-gray-200"
+                            ? "bg-[#f8f9fc] text-gray-900 border border-gray-100 rounded-tr-sm"
+                            : "bg-white text-gray-900 border border-gray-100 rounded-tl-sm"
                         }`}
                       >
-                        <div className="text-sm whitespace-pre-wrap">
-                          {message.content}
-                        </div>
+                        {message.role === "assistant" && (
+                          <ReactMarkdown
+                            className={"prose prose-sm prose-indigo"}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        )}
+
+                        {message.role === "user" && (
+                          <div className="whitespace-pre-wrap">
+                            {message.content}
+                          </div>
+                        )}
                         <div
-                          className={`text-xs mt-1 ${message.role === "user" ? "opacity-70" : "opacity-60"}`}
+                          className={`text-[10px] mt-2 ${message.role === "user" ? "text-gray-400 text-right" : "text-gray-400"}`}
                         >
-                          {message.timestamp.toLocaleTimeString()}
+                          {message.timestamp.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </div>
                       </div>
                     </div>
@@ -322,15 +325,19 @@ export function AIChatDialog({ open, onOpenChange, notes }: AIChatDialogProps) {
                 ))}
 
                 {isLoading && (
-                  <div className="flex gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-r from-gray-500 to-gray-600 rounded-full flex items-center justify-center shadow-sm">
+                  <div className="flex gap-4">
+                    <div className="w-8 h-8 mt-1 bg-indigo-600 rounded-full flex items-center justify-center shadow-sm">
                       <Bot className="h-4 w-4 text-white" />
                     </div>
-                    <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-3 border border-gray-200 shadow-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                        <span className="text-sm text-gray-600">
-                          AI is thinking...
+                    <div className="bg-white rounded-2xl rounded-tl-sm px-5 py-3.5 border border-gray-100 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="flex space-x-1">
+                          <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                          <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                          <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce"></div>
+                        </div>
+                        <span className="text-sm text-gray-500 font-medium">
+                          Thinking...
                         </span>
                       </div>
                     </div>
@@ -339,21 +346,21 @@ export function AIChatDialog({ open, onOpenChange, notes }: AIChatDialogProps) {
               </div>
             </ScrollArea>
 
-            <div className="flex gap-2 pt-4 border-t border-gray-200 bg-gradient-to-r from-white to-gray-50 px-4 pb-4">
+            <div className="flex gap-3 pt-4 border-t border-gray-100 bg-white px-6 pb-6">
               <Textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask me anything about your notes..."
-                className="flex-1 min-h-[40px] max-h-[120px] bg-white border-gray-200 focus:border-blue-300 focus:ring-blue-200"
+                className="flex-1 min-h-[52px] max-h-[120px] bg-white border-2 border-indigo-500 focus-visible:ring-0 focus-visible:border-indigo-600 shadow-sm rounded-xl py-3.5 px-4 transition-all resize-none text-base"
                 disabled={isLoading}
               />
               <Button
                 onClick={handleSend}
                 disabled={!input.trim() || isLoading}
-                className="self-end bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-sm"
+                className="self-end h-[52px] w-[52px] rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm flex items-center justify-center flex-shrink-0 transition-colors"
               >
-                <Send className="h-4 w-4" />
+                <Send className="h-5 w-5" />
               </Button>
             </div>
           </div>
