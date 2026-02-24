@@ -7,7 +7,6 @@ import {
   ChevronRight,
   ChevronDown,
   Folder,
-  FolderOpen,
   FileText,
   MoreHorizontal,
   Edit2,
@@ -71,10 +70,6 @@ export function Sidebar({
 }: SidebarProps) {
   const [editingNotebook, setEditingNotebook] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
-  const [draggedItem, setDraggedItem] = useState<{
-    type: "notebook" | "note";
-    id: string;
-  } | null>(null);
   const [dragOverItem, setDragOverItem] = useState<{
     type: "notebook" | "note";
     id: string;
@@ -140,7 +135,6 @@ export function Sidebar({
       return;
     }
     e.stopPropagation();
-    setDraggedItem({ type, id });
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", `${type}:${id}`); // Set data for cross-browser compatibility
   };
@@ -190,7 +184,6 @@ export function Sidebar({
       }
     }
 
-    setDraggedItem(null);
     setDragOverItem(null);
   };
 
@@ -211,7 +204,6 @@ export function Sidebar({
       onMoveNotebook(draggedId, null);
     }
 
-    setDraggedItem(null);
     setDragOverItem(null);
   };
 
@@ -243,11 +235,9 @@ export function Sidebar({
           <Button
             variant="ghost"
             className={cn(
-              "flex-1 justify-start h-9 px-2 font-normal transition-all duration-200",
-              isSelected &&
-                "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 shadow-sm border-l-2 border-blue-500",
-              !isSelected && "hover:bg-gray-50 hover:shadow-sm",
-              level > 0 && "bg-gray-25",
+              "flex-1 justify-start h-9 px-2 font-medium transition-all duration-200 rounded-lg",
+              isSelected && "bg-[#EEF0FF] text-indigo-700 shadow-sm",
+              !isSelected && "hover:bg-gray-50 text-gray-600",
             )}
             style={{ paddingLeft: `${level * 16 + 8}px` }}
             onClick={() => {
@@ -260,19 +250,17 @@ export function Sidebar({
             }}
             disabled={isProcessingMove || isThisNotebookDeleting} // Disable button if move or delete is processing
           >
-            <div className="w-4 flex justify-center mr-1">
-              {hasChildren &&
-                (isExpanded ? (
-                  <ChevronDown className="h-3 w-3 text-gray-600" />
-                ) : (
-                  <ChevronRight className="h-3 w-3 text-gray-600" />
-                ))}
-            </div>
             {isExpanded ? (
-              <FolderOpen className="h-4 w-4 mr-2 text-blue-600" />
+              <ChevronDown className="h-4 w-4 mr-2 text-gray-400" />
             ) : (
-              <Folder className="h-4 w-4 mr-2 text-blue-600" />
+              <ChevronRight className="h-4 w-4 mr-2 text-gray-400" />
             )}
+            <Folder
+              className={cn(
+                "h-4 w-4 mr-2",
+                isSelected ? "text-indigo-600" : "text-gray-400",
+              )}
+            />
             {isEditing ? (
               <div className="flex items-center flex-1">
                 <Input
@@ -383,23 +371,28 @@ export function Sidebar({
                   <Button
                     variant="ghost"
                     className={cn(
-                      "flex-1 justify-start h-8 px-2 font-normal transition-all duration-200",
+                      "flex-1 justify-start h-9 px-2 font-medium transition-all duration-200 rounded-lg ml-6",
                       selectedNote === note.id &&
-                        "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 shadow-sm border-l-2 border-blue-400",
+                        "bg-[#EEF0FF] text-indigo-700 shadow-sm",
                       selectedNote !== note.id &&
-                        "hover:bg-gray-50 text-gray-700",
+                        "hover:bg-gray-50 text-gray-600",
                     )}
-                    style={{ paddingLeft: `${(level + 1) * 16 + 8}px` }}
                     onClick={() => {
                       if (!isProcessingMove && !isThisNoteDeleting) {
                         onNoteSelect(note.id);
                         onNotebookSelect(notebook.id);
                       }
                     }}
-                    disabled={isProcessingMove || isThisNoteDeleting} // Disable button if move or delete is processing
+                    disabled={isProcessingMove || isThisNoteDeleting}
                   >
-                    <div className="w-4 mr-1"></div>
-                    <FileText className="h-3.5 w-3.5 mr-2 text-gray-500" />
+                    <FileText
+                      className={cn(
+                        "h-4 w-4 mr-2",
+                        selectedNote === note.id
+                          ? "text-indigo-600"
+                          : "text-gray-400",
+                      )}
+                    />
                     <span className="truncate text-sm flex-1 text-left">
                       {note.title}
                     </span>
@@ -467,11 +460,11 @@ export function Sidebar({
         handleDropOnRoot(e);
       }}
     >
-      <div className="p-2">
-        <h3 className="text-sm font-semibold text-gray-800 mb-3 px-2 py-1 bg-gray-100 rounded-md">
+      <div className="p-4 flex flex-col gap-2">
+        <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 mb-1">
           Notebooks & Notes
         </h3>
-        <div className="space-y-1">
+        <div className="flex flex-col gap-0.5">
           {rootNotebooks.map((notebook) => renderNotebook(notebook))}
         </div>
       </div>

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { Search, FileText } from "lucide-react";
+import { Search, FileText, Zap, ArrowRight, Code } from "lucide-react";
 import type { Note } from "../types/note";
 import axios from "axios";
 import { AppConfig } from "../config/config";
@@ -17,6 +17,27 @@ interface SearchDialogProps {
   notes: Note[];
   onNoteSelect: (noteId: string) => void;
 }
+
+const highlightText = (text: string, query: string) => {
+  if (!query) return text;
+  const parts = text.split(new RegExp(`(${query})`, "gi"));
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === query.toLowerCase() ? (
+          <span
+            key={i}
+            className="bg-yellow-100 text-yellow-800 px-1 rounded-sm"
+          >
+            {part}
+          </span>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  );
+};
 
 function SearchDialog({
   open,
@@ -66,73 +87,119 @@ function SearchDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
-        <DialogHeader>
-          <DialogTitle>Semantic Search</DialogTitle>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden p-0 gap-0 bg-white border-0 shadow-2xl rounded-2xl sm:rounded-2xl">
+        <DialogHeader className="px-6 py-5 pb-2">
+          <DialogTitle className="text-xl font-semibold text-gray-900">
+            Semantic Search
+          </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search your notes semantically..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="pl-10"
-              autoFocus
-            />
+        <div className="flex flex-col">
+          <div className="px-6 pt-2 pb-4">
+            <div className="relative group">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-indigo-500" />
+              <Input
+                placeholder="Search your notes semantically..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="pl-12 py-6 text-base rounded-xl border-2 border-indigo-500 focus-visible:ring-0 focus-visible:border-indigo-600 shadow-sm transition-all"
+                autoFocus
+              />
+            </div>
+            <div className="flex items-center mt-3 text-xs text-gray-400 font-medium px-2">
+              <span>Press</span>
+              <kbd className="mx-1.5 px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded text-gray-500 font-sans shadow-sm">
+                Enter
+              </kbd>
+              <span>to search</span>
+            </div>
           </div>
 
-          <div className="max-h-96 overflow-auto">
+          <div className="max-h-[50vh] overflow-auto px-6 pb-2">
             {isSearching && (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                <span className="ml-2 text-sm text-gray-600">Searching...</span>
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                <span className="ml-3 text-sm font-medium text-gray-600">
+                  Searching...
+                </span>
               </div>
             )}
 
             {!isSearching && results.length > 0 && (
-              <div className="space-y-2">
-                {results.map((note) => (
-                  <Button
-                    key={note.id}
-                    variant="ghost"
-                    className="w-full justify-start h-auto p-3 text-left hover:bg-blue-50"
-                    onClick={() => handleNoteSelect(note.id)}
-                  >
-                    <FileText className="h-4 w-4 mr-3 text-gray-500 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">
-                        {note.title}
+              <div className="space-y-3 pb-4">
+                {results.map((note) => {
+                  const isCode =
+                    note.title.toLowerCase().includes("setup") ||
+                    note.title.toLowerCase().includes("config") ||
+                    note.title.toLowerCase().includes("code");
+                  return (
+                    <Button
+                      key={note.id}
+                      variant="ghost"
+                      className="w-full justify-start h-auto p-4 text-left bg-[#f8f9fc] hover:bg-[#f0f3ff] rounded-xl border border-transparent hover:border-indigo-100 transition-all group/item"
+                      onClick={() => handleNoteSelect(note.id)}
+                    >
+                      <div className="flex gap-4 w-full">
+                        <div className="mt-1 flex-shrink-0 text-gray-400 group-hover/item:text-indigo-500 transition-colors">
+                          {isCode ? (
+                            <Code className="h-5 w-5" />
+                          ) : (
+                            <FileText className="h-5 w-5" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-gray-900 text-sm truncate">
+                            {note.title}
+                          </div>
+                          <div className="text-sm text-gray-500 mt-1.5 leading-relaxed break-words whitespace-normal line-clamp-2">
+                            {note.content.length > 150
+                              ? highlightText(
+                                  note.content
+                                    .replace(/[#*\n]/g, " ")
+                                    .substring(0, 150) + "...",
+                                  query,
+                                )
+                              : highlightText(
+                                  note.content.replace(/[#*\n]/g, " "),
+                                  query,
+                                )}
+                          </div>
+                          <div className="text-xs text-indigo-600 mt-2.5 font-medium flex items-center opacity-90 group-hover/item:opacity-100">
+                            Click to open{" "}
+                            <ArrowRight className="h-3 w-3 ml-1" />
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-500 mt-1 truncate">
-                        {note.content.replace(/[#*\n]/g, " ").substring(0, 80)}
-                        ...
-                      </div>
-                      <div className="text-xs text-blue-600 mt-1">
-                        Click to open
-                      </div>
-                    </div>
-                  </Button>
-                ))}
+                    </Button>
+                  );
+                })}
               </div>
             )}
 
             {!isSearching && query && results.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>No notes found for "{query}"</p>
-                <p className="text-xs mt-2">
+              <div className="text-center py-16 text-gray-500">
+                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Search className="h-8 w-8 text-gray-400" />
+                </div>
+                <p className="text-base font-medium text-gray-900">
+                  No notes found for "{query}"
+                </p>
+                <p className="text-sm mt-2">
                   Try different keywords or create a new note
                 </p>
               </div>
             )}
           </div>
 
-          <div className="text-xs text-gray-400 text-center border-t pt-3">
-            © 2024 AI Notebook. Advanced semantic search technology helps you
-            find relevant content across all your notes using natural language
-            understanding and contextual matching.
+          <div className="bg-gray-50/80 border-t border-gray-100 px-6 py-4 flex items-center justify-between text-xs text-gray-500 mt-auto">
+            <div>© 2024 Knowledge OS. Advanced semantic search technology.</div>
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1.5 font-medium">
+                <Zap className="h-3.5 w-3.5 text-yellow-500" /> AI Powered
+              </span>
+              <span className="text-gray-400">|</span>
+              <span>{results.length} results found</span>
+            </div>
           </div>
         </div>
       </DialogContent>
