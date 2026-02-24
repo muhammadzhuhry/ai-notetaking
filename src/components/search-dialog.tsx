@@ -97,12 +97,12 @@ function SearchDialog({
         <div className="flex flex-col">
           <div className="px-6 pt-2 pb-4">
             <div className="relative group">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-indigo-500" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-blue-500" />
               <Input
                 placeholder="Search your notes semantically..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="pl-12 py-6 text-base rounded-xl border-2 border-indigo-500 focus-visible:ring-0 focus-visible:border-indigo-600 shadow-sm transition-all"
+                className="pl-12 py-6 text-base rounded-xl border-2 border-blue-500 focus-visible:ring-0 focus-visible:border-blue-600 shadow-sm transition-all"
                 autoFocus
               />
             </div>
@@ -118,7 +118,7 @@ function SearchDialog({
           <div className="max-h-[50vh] overflow-auto px-6 pb-2">
             {isSearching && (
               <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 <span className="ml-3 text-sm font-medium text-gray-600">
                   Searching...
                 </span>
@@ -140,7 +140,7 @@ function SearchDialog({
                       onClick={() => handleNoteSelect(note.id)}
                     >
                       <div className="flex gap-4 w-full">
-                        <div className="mt-1 flex-shrink-0 text-gray-400 group-hover/item:text-indigo-500 transition-colors">
+                        <div className="mt-1 flex-shrink-0 text-gray-400 group-hover/item:text-blue-500 transition-colors">
                           {isCode ? (
                             <Code className="h-5 w-5" />
                           ) : (
@@ -164,7 +164,7 @@ function SearchDialog({
                                   query,
                                 )}
                           </div>
-                          <div className="text-xs text-indigo-600 mt-2.5 font-medium flex items-center opacity-90 group-hover/item:opacity-100">
+                          <div className="text-xs text-blue-600 mt-2.5 font-medium flex items-center opacity-90 group-hover/item:opacity-100">
                             Click to open{" "}
                             <ArrowRight className="h-3 w-3 ml-1" />
                           </div>
