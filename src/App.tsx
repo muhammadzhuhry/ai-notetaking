@@ -386,18 +386,6 @@ export default function App() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
-        {/* Header Bar */}
-        <header className="h-14 border-b border-gray-100 flex items-center justify-between px-6 shrink-0 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <span className="hover:text-gray-900 cursor-pointer">
-              Tutorial go
-            </span>
-            <ChevronRight className="h-3 w-3" />
-            <span className="text-gray-900 font-medium">Overview</span>
-          </div>
-          <div className="text-xs text-gray-400">Last synced just now</div>
-        </header>
-
         <div className="flex-1 overflow-auto">
           {currentNote ? (
             <NoteEditor note={currentNote} onUpdate={handleNoteUpdate} />
@@ -417,6 +405,7 @@ export default function App() {
                 capturing your ideas with the power of AI.
               </p>
               <Button
+                disabled={!selectedNotebook || isCreatingNote}
                 onClick={() => {
                   if (selectedNotebook) {
                     handleCreateNote();
