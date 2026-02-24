@@ -236,8 +236,8 @@ export function Sidebar({
             variant="ghost"
             className={cn(
               "flex-1 justify-start h-9 px-2 font-medium transition-all duration-200 rounded-lg",
-              isSelected && "bg-[#EEF0FF] text-indigo-700 shadow-sm",
-              !isSelected && "hover:bg-gray-50 text-gray-600",
+              isSelected && "bg-blue-100 text-blue-700 shadow-sm",
+              !isSelected && "hover:bg-blue-50 text-gray-600",
             )}
             style={{ paddingLeft: `${level * 16 + 8}px` }}
             onClick={() => {
@@ -258,7 +258,7 @@ export function Sidebar({
             <Folder
               className={cn(
                 "h-4 w-4 mr-2",
-                isSelected ? "text-indigo-600" : "text-gray-400",
+                isSelected ? "text-blue-600" : "text-gray-400",
               )}
             />
             {isEditing ? (
@@ -373,9 +373,9 @@ export function Sidebar({
                     className={cn(
                       "flex-1 justify-start h-9 px-2 font-medium transition-all duration-200 rounded-lg ml-6",
                       selectedNote === note.id &&
-                        "bg-[#EEF0FF] text-indigo-700 shadow-sm",
+                        "bg-blue-100 text-blue-700 shadow-sm",
                       selectedNote !== note.id &&
-                        "hover:bg-gray-50 text-gray-600",
+                        "hover:bg-blue-50 text-gray-600",
                     )}
                     onClick={() => {
                       if (!isProcessingMove && !isThisNoteDeleting) {
@@ -389,7 +389,7 @@ export function Sidebar({
                       className={cn(
                         "h-4 w-4 mr-2",
                         selectedNote === note.id
-                          ? "text-indigo-600"
+                          ? "text-blue-600"
                           : "text-gray-400",
                       )}
                     />
