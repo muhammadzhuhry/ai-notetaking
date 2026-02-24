@@ -372,20 +372,7 @@ export default function App() {
         />
 
         {/* User Profile */}
-        <div className="p-4 border-t border-gray-100 flex items-center justify-between gap-3 bg-white">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold text-sm">
-              JD
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm font-semibold text-gray-900 truncate">
-                John Doe
-              </span>
-              <span className="text-xs text-gray-400 truncate font-medium">
-                Pro Plan
-              </span>
-            </div>
-          </div>
+        <div className="p-4 border-t border-gray-100 flex items-center justify-items-start gap-3 bg-white">
           <Button
             variant="ghost"
             size="sm"
@@ -393,6 +380,7 @@ export default function App() {
           >
             <Settings className="h-4 w-4" />
           </Button>
+          <span className="text-xs text-gray-600">Settings</span>
         </div>
       </div>
 
