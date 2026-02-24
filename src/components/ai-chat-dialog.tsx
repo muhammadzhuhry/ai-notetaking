@@ -14,6 +14,8 @@ import { AppConfig } from "../config/config";
 import type { BaseResponse } from "../dto/base-response";
 import type {
   CreateSessionResponse,
+  DeleteSessionRequest,
+  DeleteSessionResponse,
   GetAllSessionsResponse,
   GetChatHistoryResponse,
 } from "../dto/chatbot";
@@ -33,20 +35,20 @@ export function AIChatDialog({ open, onOpenChange, notes }: AIChatDialogProps) {
   const activeSession = sessions.find((s) => s.id === activeSessionId);
   const messages = activeSession?.messages || [];
 
-  const fetchData = async () => {
+  const fetchData = async (): Promise<ChatSession[]> => {
     const res = await axios.get<BaseResponse<GetAllSessionsResponse[]>>(
       `${AppConfig.baseURL}/api/chatbot/v1/sessions`,
     );
 
-    setSessions(
-      res.data.data.map((d) => ({
-        id: d.id,
-        name: d.title,
-        createdAt: new Date(d.created_at),
-        updatedAt: new Date(d.updated_at ?? d.created_at),
-        messages: [],
-      })),
-    );
+    const newSession = res.data.data.map((d) => ({
+      id: d.id,
+      name: d.title,
+      createdAt: new Date(d.created_at),
+      updatedAt: new Date(d.updated_at ?? d.created_at),
+      messages: [],
+    }));
+    setSessions(newSession);
+    return newSession;
   };
 
   const sessionClickHandler = async (sessionId: string) => {
@@ -83,14 +85,26 @@ export function AIChatDialog({ open, onOpenChange, notes }: AIChatDialogProps) {
     sessionClickHandler(res.data.data.id);
   };
 
-  const deleteSession = (sessionId: string) => {
+  const deleteSession = async (sessionId: string) => {
     if (sessions.length <= 1) return;
+
+    const data: DeleteSessionRequest = {
+      chat_session_id: sessionId,
+    };
+    await axios.delete<BaseResponse<DeleteSessionResponse>>(
+      `${AppConfig.baseURL}/api/chatbot/v1/delete-session`,
+      {
+        data,
+      },
+    );
+
+    await fetchData();
 
     setSessions((prev) => prev.filter((s) => s.id !== sessionId));
 
     if (activeSessionId === sessionId) {
       const remainingSessions = sessions.filter((s) => s.id !== sessionId);
-      setActiveSessionId(remainingSessions[0]?.id || "");
+      sessionClickHandler(remainingSessions[0]?.id ?? "");
     }
   };
 
@@ -186,8 +200,15 @@ export function AIChatDialog({ open, onOpenChange, notes }: AIChatDialogProps) {
   };
 
   useEffect(() => {
+    const fetchList = async () => {
+      const newSessions = await fetchData();
+      if (newSessions.length > 0) {
+        sessionClickHandler(newSessions[0]?.id ?? "");
+      }
+    };
+
     if (open) {
-      fetchData();
+      fetchList();
     }
   }, [open]);
 
@@ -234,7 +255,9 @@ export function AIChatDialog({ open, onOpenChange, notes }: AIChatDialogProps) {
                       onClick={() => sessionClickHandler(session.id)}
                     >
                       <span className="truncate w-full text-xs font-medium">
-                        {session.name}
+                        {session.name.length > 18
+                          ? session.name.substring(0, 18) + "..."
+                          : session.name}
                       </span>
                       <span className="text-[10px] text-gray-500 w-full mt-0.5">
                         {session.createdAt.toLocaleDateString()}
