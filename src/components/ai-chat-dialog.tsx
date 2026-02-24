@@ -12,7 +12,10 @@ import type { ChatSession, Message } from "@/types/ai-chat";
 import axios from "axios";
 import { AppConfig } from "../config/config";
 import type { BaseResponse } from "../dto/base-response";
-import type { GetAllSessionsResponse } from "../dto/chatbot";
+import type {
+  GetAllSessionsResponse,
+  GetChatHistoryResponse,
+} from "../dto/chatbot";
 
 interface AIChatDialogProps {
   open: boolean;
@@ -23,11 +26,36 @@ interface AIChatDialogProps {
 export function AIChatDialog({ open, onOpenChange, notes }: AIChatDialogProps) {
   const [input, setInput] = useState("");
   const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [activeSessionId, setActiveSessionId] = useState("session-1");
+  const [activeSessionId, setActiveSessionId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const activeSession = sessions.find((s) => s.id === activeSessionId);
   const messages = activeSession?.messages || [];
+
+  const sessionClickHandler = async (sessionId: string) => {
+    setActiveSessionId(sessionId);
+
+    const res = await axios.get<BaseResponse<GetChatHistoryResponse[]>>(
+      `${AppConfig.baseURL}/api/chatbot/v1/chat-history?chat_session_id=${sessionId}`,
+    );
+
+    setSessions((prev) =>
+      prev.map((session) => {
+        if (session.id === sessionId) {
+          return {
+            ...session,
+            messages: res.data.data.map<Message>((d) => ({
+              id: d.id,
+              role: d.role === "model" ? "assistant" : "user",
+              content: d.chat,
+              timestamp: new Date(d.createdAt),
+            })),
+          };
+        }
+        return session;
+      }),
+    );
+  };
 
   const createNewSession = () => {
     const newSession: ChatSession = {
@@ -214,7 +242,7 @@ export function AIChatDialog({ open, onOpenChange, notes }: AIChatDialogProps) {
                           ? "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 shadow-sm border-l-2 border-blue-500"
                           : "hover:bg-gray-50 hover:shadow-sm"
                       }`}
-                      onClick={() => setActiveSessionId(session.id)}
+                      onClick={() => sessionClickHandler(session.id)}
                     >
                       <span className="truncate w-full text-xs font-medium">
                         {session.name}
