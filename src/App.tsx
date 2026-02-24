@@ -6,7 +6,19 @@ import { NoteEditor } from "./components/note-editor";
 import { SearchDialog } from "./components/search-dialog";
 import { AIChatDialog } from "./components/ai-chat-dialog";
 import { Button } from "./components/ui/button";
-import { Search, MessageSquare, Plus, FolderPlus, XCircle } from "lucide-react"; // Import XCircle for clear button
+import {
+  Search,
+  MessageSquare,
+  Plus,
+  XCircle,
+  Book,
+  BookCheck,
+  Brain,
+  FilePlus,
+  Sparkles,
+  Settings,
+  ChevronRight,
+} from "lucide-react";
 import type { Note } from "./types/note";
 import type { Notebook } from "./types/notebook";
 import "./App.css";
@@ -263,18 +275,23 @@ export default function App() {
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Sidebar */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col shadow-sm">
-        <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-white to-gray-50">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-bold text-gray-900 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              AI Notetaking
-            </h1>
-            <div className="flex gap-2">
+      <div className="w-80 bg-white border-r border-gray-100 flex flex-col shadow-sm">
+        <div className="p-4 border-b border-gray-100 flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-slate-600 rounded-lg flex items-center justify-center">
+                <Brain className="h-5 w-5 text-white" />
+              </div>
+              <h1 className="text-lg font-bold text-gray-900 tracking-tight">
+                Knowledge OS
+              </h1>
+            </div>
+            <div className="flex gap-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setSearchOpen(true)}
-                className="h-8 w-8 p-0 hover:bg-blue-50"
+                className="h-8 w-8 p-0 text-gray-500 hover:text-gray-900 hover:bg-gray-100"
               >
                 <Search className="h-4 w-4" />
               </Button>
@@ -282,29 +299,26 @@ export default function App() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setChatOpen(true)}
-                className="h-8 w-8 p-0 hover:bg-blue-50"
+                className="h-8 w-8 p-0 text-gray-500 hover:text-gray-900 hover:bg-gray-100"
               >
                 <MessageSquare className="h-4 w-4" />
               </Button>
             </div>
           </div>
-          <div className="flex gap-2 mb-2">
+          <div className="flex gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={handleCreateNotebook}
               disabled={isCreatingNotebook}
-              className="flex-1 bg-transparent"
+              className="flex-1 h-9 bg-white border-gray-200 text-gray-700 hover:bg-gray-50 font-normal shadow-sm"
             >
               {isCreatingNotebook ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                  Creating...
-                </>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
               ) : (
                 <>
-                  <FolderPlus className="h-4 w-4 mr-2" />
-                  New Notebook
+                  <Book className="h-4 w-4 mr-2 text-gray-500" />
+                  Notebook
                 </>
               )}
             </Button>
@@ -313,16 +327,13 @@ export default function App() {
               size="sm"
               onClick={handleCreateNote}
               disabled={!selectedNotebook || isCreatingNote}
-              className="flex-1 bg-transparent"
+              className="flex-1 h-9 bg-white border-gray-200 text-gray-700 hover:bg-gray-50 font-normal shadow-sm"
             >
               {isCreatingNote ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                  Creating...
-                </>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
               ) : (
                 <>
-                  <Plus className="h-4 w-4 mr-2" />
+                  <FilePlus className="h-4 w-4 mr-2 text-gray-500" />
                   New Note
                 </>
               )}
@@ -333,9 +344,9 @@ export default function App() {
               variant="ghost"
               size="sm"
               onClick={handleClearSelection}
-              className="w-full justify-center text-gray-600 hover:bg-gray-100"
+              className="h-8 text-xs text-gray-500 hover:text-gray-900 justify-center gap-1.5"
             >
-              <XCircle className="h-4 w-4 mr-2" />
+              <XCircle className="h-3.5 w-3.5" />
               Clear Selection
             </Button>
           )}
@@ -359,25 +370,103 @@ export default function App() {
           isDeletingNotebook={isDeletingNotebook}
           isDeletingNote={isDeletingNote}
         />
+
+        {/* User Profile */}
+        <div className="p-4 border-t border-gray-100 flex items-center justify-between gap-3 bg-white">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold text-sm">
+              JD
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-semibold text-gray-900 truncate">
+                John Doe
+              </span>
+              <span className="text-xs text-gray-400 truncate font-medium">
+                Pro Plan
+              </span>
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 text-gray-400 hover:text-gray-900"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col bg-white overflow-x-hidden">
-        {currentNote ? (
-          <NoteEditor note={currentNote} onUpdate={handleNoteUpdate} />
-        ) : (
-          <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
-            <div className="text-center">
-              <div className="text-6xl mb-4">📝</div>
-              <h2 className="text-xl font-medium mb-2">
+      <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
+        {/* Header Bar */}
+        <header className="h-14 border-b border-gray-100 flex items-center justify-between px-6 shrink-0 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <span className="hover:text-gray-900 cursor-pointer">
+              Tutorial go
+            </span>
+            <ChevronRight className="h-3 w-3" />
+            <span className="text-gray-900 font-medium">Overview</span>
+          </div>
+          <div className="text-xs text-gray-400">Last synced just now</div>
+        </header>
+
+        <div className="flex-1 overflow-auto">
+          {currentNote ? (
+            <NoteEditor note={currentNote} onUpdate={handleNoteUpdate} />
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center p-8 text-center max-w-lg mx-auto">
+              <div className="w-32 h-32 bg-indigo-50 rounded-full flex items-center justify-center mb-8 relative">
+                <div className="absolute inset-0 bg-indigo-100/50 rounded-full animate-pulse"></div>
+                <BookCheck className="h-12 w-12 text-indigo-400 relative z-10" />
+                <div className="absolute top-4 right-4 w-2 h-2 bg-purple-400 rounded-full"></div>
+                <div className="absolute bottom-6 left-4 w-3 h-3 bg-blue-300 rounded-full"></div>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
                 Select a note to start editing
               </h2>
-              <p className="text-sm">
-                Choose a note from the sidebar or create a new one
+              <p className="text-gray-500 mb-8 leading-relaxed">
+                Choose a note from the sidebar or create a new one to begin
+                capturing your ideas with the power of AI.
               </p>
+              <Button
+                onClick={() => {
+                  if (selectedNotebook) {
+                    handleCreateNote();
+                  } else {
+                    handleCreateNotebook();
+                  }
+                }}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 h-12 rounded-xl shadow-lg shadow-indigo-200 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+              >
+                <Plus className="h-5 w-5" />
+                Create New Note
+              </Button>
+
+              <div className="mt-12 flex items-center gap-6">
+                <div className="flex items-center gap-2 px-2.5 py-1.5 bg-gray-50 rounded-lg border border-gray-100">
+                  <kbd className="text-xs font-sans text-gray-400">⌘ N</kbd>
+                  <span className="text-xs text-gray-500 font-medium">
+                    New Note
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 px-2.5 py-1.5 bg-gray-50 rounded-lg border border-gray-100">
+                  <kbd className="text-xs font-sans text-gray-400">⌘ K</kbd>
+                  <span className="text-xs text-gray-500 font-medium">
+                    Search
+                  </span>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* Floating AI Button */}
+        <button
+          onClick={() => setChatOpen(true)}
+          className="absolute bottom-6 right-6 w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-xl shadow-indigo-200 flex items-center justify-center transition-all hover:scale-110 active:scale-95 group"
+        >
+          <Sparkles className="h-6 w-6 group-hover:rotate-12 transition-transform" />
+        </button>
       </div>
 
       {/* Dialogs */}
