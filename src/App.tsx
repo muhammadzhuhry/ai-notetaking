@@ -279,7 +279,7 @@ export default function App() {
         <div className="p-4 border-b border-gray-100 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-slate-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-blue-700 rounded-lg flex items-center justify-center">
                 <Brain className="h-5 w-5 text-white" />
               </div>
               <h1 className="text-lg font-bold text-gray-900 tracking-tight">
@@ -417,7 +417,7 @@ export default function App() {
             <div className="h-full flex flex-col items-center justify-center p-8 text-center max-w-lg mx-auto">
               <div className="w-32 h-32 bg-indigo-50 rounded-full flex items-center justify-center mb-8 relative">
                 <div className="absolute inset-0 bg-indigo-100/50 rounded-full animate-pulse"></div>
-                <BookCheck className="h-12 w-12 text-indigo-400 relative z-10" />
+                <BookCheck className="h-12 w-12 text-blue-400 relative z-10" />
                 <div className="absolute top-4 right-4 w-2 h-2 bg-purple-400 rounded-full"></div>
                 <div className="absolute bottom-6 left-4 w-3 h-3 bg-blue-300 rounded-full"></div>
               </div>
@@ -436,7 +436,7 @@ export default function App() {
                     handleCreateNotebook();
                   }
                 }}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 h-12 rounded-xl shadow-lg shadow-indigo-200 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 h-12 rounded-xl shadow-lg shadow-blue-200 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
               >
                 <Plus className="h-5 w-5" />
                 Create New Note
@@ -463,7 +463,7 @@ export default function App() {
         {/* Floating AI Button */}
         <button
           onClick={() => setChatOpen(true)}
-          className="absolute bottom-6 right-6 w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-xl shadow-indigo-200 flex items-center justify-center transition-all hover:scale-110 active:scale-95 group"
+          className="absolute bottom-6 right-6 w-14 h-14 bg-blue-800 hover:bg-blue-900 text-white rounded-full shadow-xl shadow-blue-200 flex items-center justify-center transition-all hover:scale-110 active:scale-95 group"
         >
           <Sparkles className="h-6 w-6 group-hover:rotate-12 transition-transform" />
         </button>
