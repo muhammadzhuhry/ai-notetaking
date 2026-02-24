@@ -13,6 +13,7 @@ import axios from "axios";
 import { AppConfig } from "../config/config";
 import type { BaseResponse } from "../dto/base-response";
 import type {
+  CreateSessionResponse,
   GetAllSessionsResponse,
   GetChatHistoryResponse,
 } from "../dto/chatbot";
@@ -32,6 +33,22 @@ export function AIChatDialog({ open, onOpenChange, notes }: AIChatDialogProps) {
   const activeSession = sessions.find((s) => s.id === activeSessionId);
   const messages = activeSession?.messages || [];
 
+  const fetchData = async () => {
+    const res = await axios.get<BaseResponse<GetAllSessionsResponse[]>>(
+      `${AppConfig.baseURL}/api/chatbot/v1/sessions`,
+    );
+
+    setSessions(
+      res.data.data.map((d) => ({
+        id: d.id,
+        name: d.title,
+        createdAt: new Date(d.created_at),
+        updatedAt: new Date(d.updated_at ?? d.created_at),
+        messages: [],
+      })),
+    );
+  };
+
   const sessionClickHandler = async (sessionId: string) => {
     setActiveSessionId(sessionId);
 
@@ -48,7 +65,7 @@ export function AIChatDialog({ open, onOpenChange, notes }: AIChatDialogProps) {
               id: d.id,
               role: d.role === "model" ? "assistant" : "user",
               content: d.chat,
-              timestamp: new Date(d.createdAt),
+              timestamp: new Date(d.created_at),
             })),
           };
         }
@@ -57,25 +74,13 @@ export function AIChatDialog({ open, onOpenChange, notes }: AIChatDialogProps) {
     );
   };
 
-  const createNewSession = () => {
-    const newSession: ChatSession = {
-      id: `session-${Date.now()}`,
-      name: "New Chat",
-      messages: [
-        {
-          id: Date.now().toString(),
-          role: "assistant",
-          content:
-            "Hello! I'm ready to help you with your notes. What would you like to discuss?",
-          timestamp: new Date(),
-        },
-      ],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+  const createNewSession = async () => {
+    const res = await axios.post<BaseResponse<CreateSessionResponse>>(
+      `${AppConfig.baseURL}/api/chatbot/v1/create-session`,
+    );
 
-    setSessions((prev) => [...prev, newSession]);
-    setActiveSessionId(newSession.id);
+    await fetchData();
+    sessionClickHandler(res.data.data.id);
   };
 
   const deleteSession = (sessionId: string) => {
@@ -181,22 +186,6 @@ export function AIChatDialog({ open, onOpenChange, notes }: AIChatDialogProps) {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      const res = await axios.get<BaseResponse<GetAllSessionsResponse[]>>(
-        `${AppConfig.baseURL}/api/chatbot/v1/sessions`,
-      );
-
-      setSessions(
-        res.data.data.map((d) => ({
-          id: d.id,
-          name: d.title,
-          createdAt: new Date(d.createdAt),
-          updatedAt: new Date(d.updatedAt ?? d.createdAt),
-          messages: [],
-        })),
-      );
-    };
-
     if (open) {
       fetchData();
     }
