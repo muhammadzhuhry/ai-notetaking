@@ -1,13 +1,17 @@
 export interface GetAllSessionsResponse {
   id: string;
   title: string;
-  createdAt: Date;
-  updatedAt: Date | null;
+  created_at: Date;
+  updated_at: Date | null;
 }
 
 export interface GetChatHistoryResponse {
   id: string;
   role: string;
   chat: string;
-  createdAt: Date;
+  created_at: Date;
+}
+
+export interface CreateSessionResponse {
+  id: string;
 }
