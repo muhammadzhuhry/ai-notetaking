@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { ScrollArea } from "./ui/scroll-area";
-import { Send, Bot, Plus, Trash2 } from "lucide-react";
+import { Send, Bot, Plus, Trash2, User } from "lucide-react";
 import type { Note } from "../types/note";
 import type { ChatSession, Message } from "@/types/ai-chat";
 import axios from "axios";
@@ -239,7 +239,7 @@ export function AIChatDialog({ open, onOpenChange, notes }: AIChatDialogProps) {
                       size="sm"
                       className={`flex-1 justify-start h-auto py-2.5 px-3 text-left flex-col items-start transition-all duration-200 rounded-xl ${
                         activeSessionId === session.id
-                          ? "bg-white text-indigo-700 shadow-sm border border-gray-200 font-medium"
+                          ? "bg-white text-blue-700 shadow-sm border border-gray-200 font-medium"
                           : "hover:bg-white text-gray-600 hover:text-gray-900 border border-transparent"
                       }`}
                       onClick={() => sessionClickHandler(session.id)}
@@ -283,10 +283,10 @@ export function AIChatDialog({ open, onOpenChange, notes }: AIChatDialogProps) {
                       <div className="flex-shrink-0 mt-1">
                         {message.role === "user" ? (
                           <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold text-xs shadow-sm">
-                            JD
+                            <User className="h-4 w-4 text-blue-700" />
                           </div>
                         ) : (
-                          <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center shadow-sm">
+                          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center shadow-sm">
                             <Bot className="h-4 w-4 text-white" />
                           </div>
                         )}
@@ -326,7 +326,7 @@ export function AIChatDialog({ open, onOpenChange, notes }: AIChatDialogProps) {
 
                 {isLoading && (
                   <div className="flex gap-4">
-                    <div className="w-8 h-8 mt-1 bg-indigo-600 rounded-full flex items-center justify-center shadow-sm">
+                    <div className="w-8 h-8 mt-1 bg-blue-600 rounded-full flex items-center justify-center shadow-sm">
                       <Bot className="h-4 w-4 text-white" />
                     </div>
                     <div className="bg-white rounded-2xl rounded-tl-sm px-5 py-3.5 border border-gray-100 shadow-sm">
@@ -352,13 +352,13 @@ export function AIChatDialog({ open, onOpenChange, notes }: AIChatDialogProps) {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask me anything about your notes..."
-                className="flex-1 min-h-[52px] max-h-[120px] bg-white border-2 border-indigo-500 focus-visible:ring-0 focus-visible:border-indigo-600 shadow-sm rounded-xl py-3.5 px-4 transition-all resize-none text-base"
+                className="flex-1 min-h-[52px] max-h-[120px] bg-white border-2 border-indigo-500 focus-visible:ring-0 focus-visible:border-blue-600 shadow-sm rounded-xl py-3.5 px-4 transition-all resize-none text-base"
                 disabled={isLoading}
               />
               <Button
                 onClick={handleSend}
                 disabled={!input.trim() || isLoading}
-                className="self-end h-[52px] w-[52px] rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm flex items-center justify-center flex-shrink-0 transition-colors"
+                className="self-end h-[52px] w-[52px] rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-sm flex items-center justify-center flex-shrink-0 transition-colors"
               >
                 <Send className="h-5 w-5" />
               </Button>
