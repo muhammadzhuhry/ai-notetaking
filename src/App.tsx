@@ -8,8 +8,6 @@ import { AIChatDialog } from "./components/ai-chat-dialog";
 import { Button } from "./components/ui/button";
 import {
   Search,
-  MessageSquare,
-  Plus,
   XCircle,
   Book,
   BookCheck,
@@ -17,7 +15,8 @@ import {
   FilePlus,
   Sparkles,
   Settings,
-  ChevronRight,
+  DiamondPlus,
+  Bot,
 } from "lucide-react";
 import type { Note } from "./types/note";
 import type { Notebook } from "./types/notebook";
@@ -279,10 +278,10 @@ export default function App() {
         <div className="p-4 border-b border-gray-100 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-700 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-800 to-purple-800 rounded-lg flex items-center justify-center">
                 <Brain className="h-5 w-5 text-white" />
               </div>
-              <h1 className="text-lg font-bold text-gray-900 tracking-tight">
+              <h1 className="text-lg font-bold text-grad text-gray-900 tracking-tight">
                 Knowledge OS
               </h1>
             </div>
@@ -295,16 +294,28 @@ export default function App() {
               >
                 <Search className="h-4 w-4" />
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setChatOpen(true)}
-                className="h-8 w-8 p-0 text-gray-500 hover:text-gray-900 hover:bg-gray-100"
-              >
-                <MessageSquare className="h-4 w-4" />
-              </Button>
             </div>
           </div>
+
+          <div className="">
+            <Button
+              variant="outline"
+              size="default"
+              onClick={handleCreateNote}
+              disabled={!selectedNotebook || isCreatingNote}
+              className="w-full bg-gradient-to-r from-blue-800 to-purple-800 text-white hover:text-white font-normal shadow-sm"
+            >
+              {isCreatingNote ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              ) : (
+                <>
+                  <FilePlus className="h-4 w-4 mr-2 text-white" />
+                  New Note
+                </>
+              )}
+            </Button>
+          </div>
+
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -322,7 +333,18 @@ export default function App() {
                 </>
               )}
             </Button>
+
             <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setChatOpen(true)}
+              className="flex-1 h-9 bg-white border-gray-200 text-gray-700 hover:bg-gray-50 font-normal shadow-sm"
+            >
+              <Bot className="h-4 w-4 mr-2 text-gray-500" />
+              Ask AI
+            </Button>
+
+            {/* <Button
               variant="outline"
               size="sm"
               onClick={handleCreateNote}
@@ -333,11 +355,11 @@ export default function App() {
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
               ) : (
                 <>
-                  <FilePlus className="h-4 w-4 mr-2 text-gray-500" />
-                  New Note
+                  <Bot className="h-4 w-4 mr-2 text-gray-500" />
+                  Ask AI
                 </>
               )}
-            </Button>
+            </Button> */}
           </div>
           {(selectedNotebook || selectedNote) && (
             <Button
@@ -405,7 +427,7 @@ export default function App() {
                 capturing your ideas with the power of AI.
               </p>
               <Button
-                disabled={!selectedNotebook || isCreatingNote}
+                // disabled={!selectedNotebook || isCreatingNote}
                 onClick={() => {
                   if (selectedNotebook) {
                     handleCreateNote();
@@ -413,22 +435,26 @@ export default function App() {
                     handleCreateNotebook();
                   }
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 h-12 rounded-xl shadow-lg shadow-blue-200 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+                className="bg-gradient-to-r from-blue-700 to-purple-700 hover:from-blue-800 hover:to-purple-800 text-white px-8 h-12 rounded-xl shadow-lg shadow-blue-200 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
               >
-                <Plus className="h-5 w-5" />
+                <DiamondPlus className="h-5 w-5" />
                 Create New Note
               </Button>
 
-              <div className="mt-12 flex items-center gap-6">
-                <div className="flex items-center gap-2 px-2.5 py-1.5 bg-gray-50 rounded-lg border border-gray-100">
-                  <kbd className="text-xs font-sans text-gray-400">⌘ N</kbd>
-                  <span className="text-xs text-gray-500 font-medium">
+              <div className="mt-8 flex items-center gap-6">
+                <div className="flex items-center gap-2 px-2.5 py-1.5">
+                  <kbd className="text-sm font-sans bg-gray-50 rounded-lg border border-gray-100 px-2 py-1 text-gray-400">
+                    ⌘ N
+                  </kbd>
+                  <span className="text-sm text-gray-500 font-medium">
                     New Note
                   </span>
                 </div>
-                <div className="flex items-center gap-2 px-2.5 py-1.5 bg-gray-50 rounded-lg border border-gray-100">
-                  <kbd className="text-xs font-sans text-gray-400">⌘ K</kbd>
-                  <span className="text-xs text-gray-500 font-medium">
+                <div className="flex items-center gap-2 px-2.5 py-1.5">
+                  <kbd className="text-sm font-sans bg-gray-50 rounded-lg border border-gray-100 px-2 py-1 text-gray-400">
+                    ⌘ K
+                  </kbd>
+                  <span className="text-sm text-gray-500 font-medium">
                     Search
                   </span>
                 </div>
@@ -440,7 +466,7 @@ export default function App() {
         {/* Floating AI Button */}
         <button
           onClick={() => setChatOpen(true)}
-          className="absolute bottom-6 right-6 w-14 h-14 bg-blue-800 hover:bg-blue-900 text-white rounded-full shadow-xl shadow-blue-200 flex items-center justify-center transition-all hover:scale-110 active:scale-95 group"
+          className="absolute bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-blue-800 to-purple-800 hover:from-blue-900 hover:to-purple-900 text-white rounded-full shadow-xl shadow-blue-200 flex items-center justify-center transition-all hover:scale-110 active:scale-95 group"
         >
           <Sparkles className="h-6 w-6 group-hover:rotate-12 transition-transform" />
         </button>
