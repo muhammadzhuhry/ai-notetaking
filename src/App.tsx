@@ -427,7 +427,7 @@ export default function App() {
                 capturing your ideas with the power of AI.
               </p>
               <Button
-                // disabled={!selectedNotebook || isCreatingNote}
+                disabled={!selectedNotebook || isCreatingNote}
                 onClick={() => {
                   if (selectedNotebook) {
                     handleCreateNote();
