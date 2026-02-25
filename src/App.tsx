@@ -271,6 +271,23 @@ export default function App() {
     setSelectedNote(null);
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "n") {
+        e.preventDefault();
+        handleCreateNote();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedNotebook, isCreatingNote, searchOpen]);
+
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Sidebar */}
