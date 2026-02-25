@@ -461,7 +461,7 @@ export default function App() {
               <div className="mt-8 flex items-center gap-6">
                 <div className="flex items-center gap-2 px-2.5 py-1.5">
                   <kbd className="text-sm font-sans bg-gray-50 rounded-lg border border-gray-100 px-2 py-1 text-gray-400">
-                    ⌘ N
+                    ⌘ + N
                   </kbd>
                   <span className="text-sm text-gray-500 font-medium">
                     New Note
@@ -469,7 +469,7 @@ export default function App() {
                 </div>
                 <div className="flex items-center gap-2 px-2.5 py-1.5">
                   <kbd className="text-sm font-sans bg-gray-50 rounded-lg border border-gray-100 px-2 py-1 text-gray-400">
-                    ⌘ K
+                    ⌘ + K
                   </kbd>
                   <span className="text-sm text-gray-500 font-medium">
                     Search
